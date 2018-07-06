@@ -1,16 +1,14 @@
 void filepull(char* filename){
+     String a_url = String(filename);
+     String b_url = String(urlprefix);
      int bytesdownloaded = 0;
-     char url[35] = "";
-     char urlprefix[] = "http://192.168.1.64:8000/";
-     strcat(url, urlprefix);
-     strcat(url, filename);
+     
+     String url = b_url + a_url;
+     //char url[35];// = "";
+     //strcat(url, urlprefix);
+     //strcat(url, filename);
      Serial.print("Pulling file from:   ");
      Serial.println(url);
-     tft.setTextColor(RED);
-     tft.setTextSize(1);
-     tft.setCursor(0 ,0);
-     tft.print("downloading: ");
-     tft.print(filename);
      
      
     if((WiFi.status() == WL_CONNECTED)) {
@@ -22,23 +20,21 @@ void filepull(char* filename){
         http.begin(url);
 
 
-        Serial.println("[HTTP] GET...\n");
+        Serial.print("[HTTP] GET...");
         // start connection and send HTTP header
         int httpCode = http.GET();
         Serial.println(httpCode); 
         if(httpCode>0) {
             // HTTP header has been send and Server response header has been handled
-
             // file found at server
             if(httpCode == HTTP_CODE_OK) {
                 // get lenght of document (is -1 when Server sends no Content-Length header)
                 int len = http.getSize();
-                
                 // create buffer for read
-                uint8_t buff[1024] = { 0 };
+                uint8_t buff[512];  //= { 0 };
                 // get tcp stream
                 WiFiClient * stream = http.getStreamPtr();
-                stream->setNoDelay(1);
+                //stream->setNoDelay(1);
                 delay(1);
                 // read all data from server
                 while(http.connected() && (len > 0 || len == -1)) {
@@ -48,7 +44,7 @@ void filepull(char* filename){
                     size_t size = stream->available();
 
                     if(size) {
-                        yield();
+                        delay(1);
                         // read up to 2048 bytes
                         //Serial.println("writing to file");
                         int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
@@ -57,31 +53,23 @@ void filepull(char* filename){
 //                          Serial.print(char(buff[y]));
 //                          delay(1);
 //                        } 
-                        bytesdownloaded = bytesdownloaded + c;
-                        Serial.println(bytesdownloaded);
-                        f.write(buff,c);
-                        
+//                        bytesdownloaded = bytesdownloaded + c;
+//                        Serial.println(bytesdownloaded);
 
-                        
-//                        digitalWrite(TFT_DC, HIGH); // Set DATA/COMMAND pin to DATA.    
-//                        digitalWrite(TFT_CS, LOW);
-//                        SPI.beginTransaction(SPISettings(60000000, MSBFIRST, SPI_MODE0));
-//                        SPI.writeBytes(buff, c);
-//                        SPI.endTransaction();
-//                        digitalWrite(TFT_CS, HIGH);
+                        f.write(buff,c);
 
                         if(len > 0) {
                             len -= c;
                         }
                     }
-                    yield();
+                    delay(1);
                 }
             }
         } 
         else {
-          yield();
+          delay(1);
         }
-        yield();
+        delay(1);
         http.end();
         f.close();              
     }

@@ -11,14 +11,16 @@ void rawFullSPI(char* filename) {
     //tft.writecommand(ST7735_RAMWR);// Tell display we're going to send it image data in a moment. (Not sure if necessary.) 
     digitalWrite(TFT_DC, HIGH); // Set DATA/COMMAND pin to DATA.    
     if(!SD.open(filename)){
-      Serial.println("File not found!");
+      Serial.print(filename);
+      Serial.println(" not found!");
       //filepull(filename);
       return;
     } 
      // Buffer two full rows at a time - 512 bytes.  This is the same the size of an SD card block.
     f = SD.open(filename); // Open file for reading.
-
-    uint8_t buffer[3072];
+    Serial.print("Playing file: ");
+    Serial.println(filename);
+    uint8_t buffer[2048];
     while(f.available()) { // 2.79FPS without SPI_FULL_SPEED in SPI.begin, 3.75FPS with it.
       uint16_t readuntil = f.read(buffer, sizeof(buffer));
       uint16_t file_size = f.size();
@@ -30,7 +32,7 @@ void rawFullSPI(char* filename) {
       SPI.endTransaction();
       //interrupts();         
       digitalWrite(TFT_CS, HIGH); // Tell display we're done talking to it for now, so the next SD read doesn't corrupt the screen.
-      delay(1);
+      delay(0);
     }  
     f.close(); // Close the file. 
 }
